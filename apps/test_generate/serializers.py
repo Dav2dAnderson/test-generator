@@ -1,6 +1,6 @@
 # apps/test_generate/serializers.py
 from rest_framework import serializers
-from .models import Test, Question, Choice
+from .models import Test, Question, Choice, Passage
 
 
 class ChoiceSerializer(serializers.ModelSerializer):
@@ -22,4 +22,10 @@ class TestSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Test
-        fields = ['id', 'title', 'passage', 'created_by', 'questions', 'created_at']
+        fields = ['id', 'title', 'passage', 'questions', 'created_at']
+
+
+class PassageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Passage
+        fields = ['id', 'title']

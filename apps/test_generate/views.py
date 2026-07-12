@@ -1,12 +1,14 @@
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
+from rest_framework import generics, permissions, status
 from rest_framework.permissions import IsAuthenticated
-from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from django.db import transaction
 
 from .models import Passage, Test, Question, Choice
+from .serializers import PassageSerializer, QuestionSerializer, TestSerializer, ChoiceSerializer
+
 from .services.extract import extract_text_from_file, UnsupportedFileTypeError
 from .services.question_generator import generate_questions_from_passage, QuestionGenerationError
 # Create your views here.
@@ -70,3 +72,75 @@ class GenerateTestFromPassageView(APIView):
             {"test_id": test.id, "message": "Test generated successfully."},
             status=status.HTTP_201_CREATED
         )
+
+
+class TestListCreateView(generics.ListCreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = TestSerializer
+
+    def get_queryset(self):
+        return Test.objects.all().prefetch_related('questions__choices').order_by('-created_at')
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+
+class TestDetailView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Test.objects.all()
+    serializer_class = TestSerializer
+
+    def perform_update(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+
+class QuestionListCreateView(generics.ListCreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = QuestionSerializer
+
+    def get_queryset(self):
+        test = get_object_or_404(Test, pk=self.kwargs['test_id'])
+        return test.questions.all().prefetch_related('choices')
+
+    def perform_create(self, serializer):
+        test = get_object_or_404(Test, pk=self.kwargs['test_id'])
+        serializer.save(test=test)
+
+
+class QuestionDetailView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Question.objects.all()
+    serializer_class = QuestionSerializer
+
+
+class ChoiceListCreateView(generics.ListCreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ChoiceSerializer
+
+    def get_queryset(self):
+        question = get_object_or_404(Question, pk=self.kwargs['question_id'])
+        return question.choices.all()
+
+    def perform_create(self, serializer):
+        question = get_object_or_404(Question, pk=self.kwargs['question_id'])
+        serializer.save(question=question)
+
+
+class ChoiceDetailView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Choice.objects.all()
+    serializer_class = ChoiceSerializer
+
+
+class PassageView(APIView):
+    permission_classes = [permissions.IsAdminUser]
+    def get(self, request):
+        passages = Passage.objects.all()
+        serializer = PassageSerializer(passages, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def delete(self, request, pk):
+        if pk:
+            passage = Passage.objects.get(pk=pk)
+            passage.delete()
+        return Response({"pk": "pk is required."})

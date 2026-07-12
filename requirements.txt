@@ -1,0 +1,36 @@
+# ==== Core ====
+Django>=5.0,<5.1
+djangorestframework>=3.15,<3.16
+python-decouple>=3.8
+
+# ==== Database ====
+psycopg2-binary>=2.9
+
+# ==== Authentication ====
+djangorestframework-simplejwt>=5.3
+dj-rest-auth>=6.0
+
+# ==== API documentation ====
+drf-spectacular>=0.27
+
+# ==== CORS (frontend Next.js bilan ishlash uchun) ====
+django-cors-headers>=4.3
+
+# ==== File handling ====
+Pillow>=10.3
+pypdf>=4.2
+python-docx>=1.1
+
+# ==== AI (Gemini API) ====
+google-generativeai>=0.7
+
+# ==== Media storage (production, Hetzner/S3-compatible) ====
+django-storages>=1.14
+
+# ==== Background tasks (ixtiyoriy, agar Celery ishlatilsa) ====
+celery>=5.4
+redis>=5.0
+
+# ==== Testing ====
+pytest>=8.2
+pytest-django>=4.8

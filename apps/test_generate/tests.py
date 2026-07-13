@@ -61,3 +61,11 @@ class TestApiViewsTestCase(TestCase):
         choice_detail_response = self.client.get(reverse('choice-detail', args=[choice_response.json()['id']]))
         self.assertEqual(choice_detail_response.status_code, 200)
         self.assertEqual(choice_detail_response.json()['label'], 'A')
+
+    def test_swagger_docs_are_available(self):
+        schema_response = self.client.get(reverse('schema'))
+        self.assertEqual(schema_response.status_code, 200)
+        self.assertIn('application/vnd.oai.openapi', schema_response['Content-Type'])
+
+        swagger_response = self.client.get(reverse('swagger-ui'))
+        self.assertEqual(swagger_response.status_code, 200)
